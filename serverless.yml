@@ -1,0 +1,84 @@
+service:
+  name: user-nest
+
+plugins:
+  - serverless-webpack
+  - serverless-prune-plugin
+  - serverless-offline
+
+provider:
+  name: aws
+  runtime: nodejs10.x
+  memorySize: 192
+  stage: ${opt:stage,'local'}
+  region: ${self:custom.awsRegion, 'eu-west-1'}
+  timeout: 30
+  logRetentionInDays: 3
+  profile: ${self:custom.awsProfile, 'default'}
+
+  # Environment Variables
+  environment:
+    MYSQL_HOST: ${self:custom.mysqlHost.${self:provider.stage}}
+    MYSQL_USER: ${self:custom.mysqlUser.${self:provider.stage}}
+    MYSQL_PASSWORD: ${self:custom.mysqlPassword.${self:provider.stage}}
+    MYSQL_DATABASE: ${self:custom.mysqlDatabase.${self:provider.stage}}
+    MYSQL_PORT: ${self:custom.mysqlPort.${self:provider.stage}}
+    AWS_REGION_NAME: ${self:custom.awsRegion}
+
+# Custom Variables
+custom:
+  secrets: ${file(secret.${self:provider.stage, 'dev'}.json)}
+  stages:
+    - local
+    - dev
+    - prod
+  mysqlHost:
+    local: localhost
+    dev: ${self:custom.secrets.DB_HOST}
+    prod: ${self:custom.secrets.DB_HOST}
+  mysqlUser:
+    local: root
+    dev: ${self:custom.secrets.DB_USER}
+    prod: ${self:custom.secrets.DB_USER}
+  mysqlPassword:
+    local: root
+    dev: ${self:custom.secrets.DB_PASSWORD}
+    prod: ${self:custom.secrets.DB_PASSWORD}
+  mysqlDatabase:
+    local: slicewall
+    dev: ${self:custom.secrets.DB_NAME}
+    prod: ${self:custom.secrets.DB_NAME}
+  mysqlPort:
+    local: "3306"
+    dev: ${self:custom.secrets.DB_PORT}
+    prod: ${self:custom.secrets.DB_PORT}
+  defaultSubnetIds: ${self:custom.secrets.SUBNET_IDS}
+  defaultSecurityGroupIds: ${self:custom.secrets.SECURITY_GROUP_ID}
+  s3BucketNameToStoreContent: ${self:custom.secrets.S3_BUCKET_NAME}
+  s3BucketNameToStoreAvatar: ${self:custom.secrets.S3_BUCKET_NAME_AVATAR}
+  awsProfile: ${self:custom.secrets.AWS_PROFILE_NAME}
+  awsRegion: ${self:custom.secrets.AWS_REGION_NAME}
+  awsUserPool: ${self:custom.secrets.USER_POOL}
+
+  prune:
+    automatic: true
+    number: 5
+  webpack:
+    includeModules:
+      forceInclude:
+        - mysql
+      forceExclude:
+        - aws-sdk
+    webpackConfig: ./webpack/webpack.config.${opt:stage,'local'}.js
+
+package:
+  individually: true
+
+functions:
+  api:
+    handler: src/lambda.handler
+    events:
+      - http:
+          method: any
+          path: /{proxy+}
+          cors: true

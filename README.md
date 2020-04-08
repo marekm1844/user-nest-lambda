@@ -4,7 +4,7 @@
 # Node.js: Nest.js framework with MySQL
 
 
-This code example is for article on https://blog.sufrgo.com.
+This code example is for article on https://blog.sufrago.com.
 
 
 ## Used technologies:

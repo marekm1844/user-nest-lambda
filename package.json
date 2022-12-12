@@ -24,7 +24,7 @@
   "dependencies": {
     "@nestjs/common": "^6.7.2",
     "@nestjs/core": "^6.7.2",
-    "@nestjs/platform-express": "^6.11.11",
+    "@nestjs/platform-express": "^9.2.1",
     "@nestjs/platform-fastify": "^7.0.5",
     "@nestjs/typeorm": "^7.0.0",
     "@nestjs/swagger": "^4.0.9",
